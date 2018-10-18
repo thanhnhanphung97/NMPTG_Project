@@ -5,6 +5,8 @@
  */
 package movement;
 
+import java.util.Random;
+
 /**
  *
  * @author Administrator
@@ -47,29 +49,18 @@ public class Wandering {
         this.maxRotation = maxRotation;
     }
     
-    public static int getBinomial(int n, double p) {
-	double log_q = Math.log(1.0 - p);
-	int x = 0;
-	double sum = 0;
-	for(;;) {
-            sum += Math.log(Math.random()) / (n - x);
-            if(sum < log_q) {
-		return x;
-            }
-            x++;
-	}
+    public static float randomBionomial(){
+        Random r = new Random();
+        return r.nextFloat()-r.nextFloat();
     }
     
-    public KinematicOutput generateKinematicOutput () {
-		Vector2D orientation = new Vector2D();
-		orientation.setZ((float)Math.cos(character.getOrientation()));
-		orientation.setX((float)Math.sin(character.getOrientation()));
-		
-		Vector2D velocity = new Vector2D();
-		velocity =  Vector2D.mulVector2D(orientation, maxSpeed);
-		
-		float rotation = getBinomial(100, 5.0)*maxRotation;
-		
-		return new KinematicOutput(velocity, rotation);
-	}
+    public KinematicSteeringOutput generateKinematicSteeringOutput(){
+        float x=(float) (Math.sin(character.getOrientation()));
+        float z=(float) (Math.cos(character.getOrientation()));
+        
+        Vector2D velocity=new Vector2D(x,z);
+        velocity.mulConstant(maxSpeed);
+        float rotation=randomBionomial()*maxRotation;
+        return new KinematicSteeringOutput(velocity,rotation);
+    }
 }

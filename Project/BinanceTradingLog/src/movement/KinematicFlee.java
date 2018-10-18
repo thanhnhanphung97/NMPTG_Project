@@ -56,4 +56,21 @@ public class KinematicFlee {
         return new KinematicOutput(velocity, 0);
     }
     
+    public static void main(String[] args) {
+        /*
+        Character character = new Character();
+        character.setPosition(new Vector2D(2,1));
+        
+        Character target = new Character();
+        target.setPosition(new Vector2D(9,1));
+        
+        KinematicSeek kinematicSeek = new KinematicSeek(character,target,1);
+        KinematicOutput kinematicOutput = kinematicSeek.generateKinematicOutput();
+        character.update(kinematicOutput, 1);
+        character.applyNewOrientation();
+        
+        System.out.println(character.getPosition());
+        System.out.println(character.getOrientation());
+        */
+    }
 }
