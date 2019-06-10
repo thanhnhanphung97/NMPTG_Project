@@ -103,9 +103,6 @@ public class Vector2D {
         return true;
     }
     
-    public static void main(String[] args) {
-        
-    }
     
     
 }

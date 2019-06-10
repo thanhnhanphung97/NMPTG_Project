@@ -4,55 +4,34 @@
  * and open the template in the editor.
  */
 package movement;
-
-import java.awt.Color;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.PriorityQueue;
-
 /**
  *
  * @author Administrator
  */
-public class GameLoop implements Runnable{
+public class pathFindAStar {
+    public static Comparator<NodeRecord> compareByEstimatedTotalCost=new Comparator<NodeRecord>(){
+        
+        @Override
+        public int compare(NodeRecord a,NodeRecord b){
+            if(a.getEstimatedTotalCost()>b.getEstimatedTotalCost())return 1;
+            else if(a.getEstimatedTotalCost()==b.getEstimatedTotalCost())return a.getNode()-b.getNode();
+            return -1;
+        }
+    };
     
-    private boolean isRunning;
-    private Demo demo;
-
-    public GameLoop() {
-    }
-
-    public GameLoop(boolean isRunning, Demo demo) {
-        this.isRunning = isRunning;
-        this.demo = demo;
-    }
-
-    public boolean isIsRunning() {
-        return isRunning;
-    }
-
-    public void setIsRunning(boolean isRunning) {
-        this.isRunning = isRunning;
-    }
-
-    public Demo getDemo() {
-        return demo;
-    }
-
-    public void setDemo(Demo demo) {
-        this.demo = demo;
-    }
-    
-    public static List<Connection> pathFindDijkstra(Graph graph,int start,int end)
+    public static List<Connection> pathFindAStar(Graph graph,int start,int end,Heuristic heuristic)
     {
-         NodeRecord startRecord=new NodeRecord();
+        NodeRecord startRecord=new NodeRecord();
         startRecord.setNode(start);
         startRecord.setCostSoFar(0);
+        startRecord.setEstimatedTotalCost(heuristic.estimate(start));
         
         List<NodeRecord> open=new ArrayList<NodeRecord>();
-        PriorityQueue<NodeRecord> openSmallest=new PriorityQueue<NodeRecord>();
+        PriorityQueue<NodeRecord> openSmallest=new PriorityQueue<NodeRecord>(compareByEstimatedTotalCost);
         open.add(startRecord);
         openSmallest.add(startRecord);
         List<NodeRecord> closed=new ArrayList<NodeRecord>();
@@ -61,6 +40,7 @@ public class GameLoop implements Runnable{
         NodeRecord endNodeRecord;
         int endNode;
         double endNodeCost;
+        double endNodeHeuristic;
         List<Connection> connections=new ArrayList<Connection>();
         
         while(open.size()>0)
@@ -76,20 +56,28 @@ public class GameLoop implements Runnable{
             {
                 endNode=connection.getToNode();
                 endNodeCost=current.getCostSoFar()+connection.getCost();
-                if(closed.contains(new NodeRecord(endNode)))continue;
+                if(closed.contains(new NodeRecord(endNode))){
+                    endNodeRecord=closed.get(closed.indexOf(new NodeRecord(endNode)));
+                    if(endNodeRecord.getCostSoFar()<=endNodeCost)continue;
+                    closed.remove(endNodeRecord);
+                    endNodeHeuristic=endNodeRecord.getEstimatedTotalCost()-endNodeRecord.getCostSoFar();
+                }
                 else if(open.contains(new NodeRecord(endNode)))
                 {
                     endNodeRecord=open.get(open.indexOf(new NodeRecord(endNode)));
                     if(endNodeRecord.getCostSoFar()<=endNodeCost)continue;
+                    endNodeHeuristic=endNodeRecord.getEstimatedTotalCost()-endNodeRecord.getCostSoFar();
                 }
                 else
                 {
                     endNodeRecord=new NodeRecord();
                     endNodeRecord.setNode(endNode);
+                    endNodeHeuristic=heuristic.estimate(endNode);
                 }
                 
                 endNodeRecord.setCostSoFar(endNodeCost);
                 endNodeRecord.setConnection(connection);
+                endNodeRecord.setEstimatedTotalCost(endNodeCost+endNodeHeuristic);
                 
                 if(!open.contains(new NodeRecord(endNode)))
                 {
@@ -115,31 +103,32 @@ public class GameLoop implements Runnable{
         }
     }
     
-    
-    @Override
-    public void run(){
+    public static void main(String[] args) {
+        //Test
+        NodeInfo nodeInfo=new NodeInfo();
+        nodeInfo.setPosition(1, new Vector2D(0,0));
+        nodeInfo.setPosition(2, new Vector2D(2,0));
+        nodeInfo.setPosition(3, new Vector2D(3,0));
+        nodeInfo.setPosition(4, new Vector2D(3,-2));
+        nodeInfo.setPosition(5, new Vector2D(4,-1));
         
-            Character character1 = new Character(0,new Vector2D(50,50),0,new Vector2D(200,200));
-            Character character2 = new Character(0,new Vector2D(300,300),0,new Vector2D(400,400));
-            character1.initRender(Color.red,40);
-            character2.initRender(Color.blue, 60);
-            Wandering wander1 = new Wandering(character1,3, (float) Math.PI/10);
-            Wandering wander2 = new Wandering(character2,3, (float) (Math.PI/12));
-            
-            while(isRunning){
-                demo.getGraphics().clearRect(0, 0, demo.getWidth(), demo.getHeight());
-                character1.update(wander1.generateKinematicSteeringOutput(), 1);
-                character2.update(wander2.generateKinematicSteeringOutput(), 1);
-                character1.render(demo.getGraphics());
-                character2.render(demo.getGraphics());
-                character1.reloadCharacter(character1);
-                character2.reloadCharacter(character2);
-                try {
-                    Thread.sleep(10);
-                } catch (InterruptedException ex) {
-                    java.util.logging.Logger.getLogger(GameLoop.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            }
+        Heuristic heuristic=new Heuristic(nodeInfo,4);
+        
+        Graph graph = new Graph();
+        Connection con=new Connection(2,1,2);
+        graph.addConnection(con);
+        con=new Connection(1,3,2);
+        graph.addConnection(con);
+        con=new Connection(7,1,4);
+        graph.addConnection(con);
+        con=new Connection(3,3,4);
+        graph.addConnection(con);
+        con=new Connection(1,3,5);
+        graph.addConnection(con);
+        con=new Connection(1,4,5);
+        graph.addConnection(con);
+        
+        List<Connection> list=pathFindAStar(graph,1,4,heuristic);
+        for(Connection i:list)System.out.println(i);
     }
-    
 }

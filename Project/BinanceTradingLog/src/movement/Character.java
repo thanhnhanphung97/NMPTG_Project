@@ -19,6 +19,8 @@ public class Character {
     private Vector2D velocity;
     private int r;
     private Color color;
+    private String characterName;
+
     public Character() {
     }
 
@@ -56,9 +58,17 @@ public class Character {
     public Vector2D getVelocity() {
         return velocity;
     }
-
+    
     public void setVelocity(Vector2D velocity) {
         this.velocity = velocity;
+    }
+    
+    public String getCharacterName() {
+        return characterName;
+    }
+
+    public void setCharacterName(String characterName) {
+        this.characterName = characterName;
     }
     
     public void update(KinematicOutput kinematicOutput,float time){
@@ -98,4 +108,34 @@ public class Character {
         g.drawLine((int) (this.position.getX()+r),(int)(this.position.getZ()+r),(int) (this.position.getX()+this.r*(x+1)), (int) (this.position.getZ()+this.r*(z+1)));
     }
     
+    private static Character[] result;
+    private static Character[] characters;
+    private static int sum = 0;
+    
+    static void Try(int i,int start){
+        if(i==result.length) {
+            for (int j = 0; j < result.length; j++) {
+                System.out.print(result[j].getCharacterName()+ "\t");
+            }
+            System.out.println();
+            sum++;
+            return;
+        }
+        for(int j=start;j<characters.length;j++){
+            result[i] = characters[j];
+            Try(i+1,j+1);
+        }
+    }
+    
+    public static void main(String[] args) {
+        characters = new Character[10];
+        result = new Character[3];
+        for (int i = 0; i < characters.length; i++) {
+            characters[i] = new Character();
+            characters[i].setCharacterName("Character A"+i);
+        }
+        Try(0,0);
+        
+        
+    }
 }
